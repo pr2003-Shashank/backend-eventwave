@@ -1,14 +1,19 @@
-# Use OpenJDK 17 lightweight image 
-FROM eclipse-temurin:21-jdk
+# Step 1: Build the application
+FROM eclipse-temurin:21-jdk as builder
 
-#Working directory in the container 
 WORKDIR /app
 
-#Copy the compiled JAR from local to the container
-COPY target/*.jar app.jar
+COPY . .
 
-#Expose port used by the Spring Boot
+RUN ./mvnw clean package -DskipTests
+
+# Step 2: Run the application
+FROM eclipse-temurin:21-jdk
+
+WORKDIR /app
+
+COPY --from=builder /app/target/*.jar app.jar
+
 EXPOSE 8080
 
-#Start the app
-ENTRYPOINT ["java" , "-jar", "app.jar"]
+ENTRYPOINT ["java", "-jar", "app.jar"]
