@@ -1,0 +1,9 @@
+com/eventwave/config/SecurityConfig.class
+com/eventwave/dto/RegistrationRequest.class
+com/eventwave/model/Role.class
+com/eventwave/service/UserService.class
+com/eventwave/repository/UserRepository.class
+com/eventwave/controller/UserController.class
+com/emp/eventmanagement/EventWaveApplication.class
+com/eventwave/repository/RoleRepository.class
+com/eventwave/model/User.class
