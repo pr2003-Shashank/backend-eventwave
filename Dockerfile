@@ -5,6 +5,9 @@ WORKDIR /app
 
 COPY . .
 
+# Make mvnw script executable
+RUN chmod +x mvnw
+
 RUN ./mvnw clean package -DskipTests
 
 # Step 2: Run the application
