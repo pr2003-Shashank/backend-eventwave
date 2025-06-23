@@ -3,9 +3,16 @@ package com.eventwave.dto;
 public class LoginRequest {
     private String email;
     private String password;
+    private String role;
     
     // Getters and setters
     
+	public String getRole() {
+		return role;
+	}
+	public void setRole(String role) {
+		this.role = role;
+	}
 	public String getEmail() {
 		return email;
 	}

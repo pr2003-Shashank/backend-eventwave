@@ -27,7 +27,11 @@ public class AuthService {
         if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
             throw new RuntimeException("Invalid email or password");
         }
-
+        
+        else if (!user.getRoles().stream().anyMatch(role -> role.getName().equalsIgnoreCase(request.getRole()))) {
+        	throw new RuntimeException("Invalid credentials");
+        }
+        
         return jwtService.generateToken(user.getEmail());
     }
 }
