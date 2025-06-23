@@ -1,4 +1,4 @@
-package com.emp.eventmanagement;
+package com.eventwave;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -10,11 +10,14 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 @EntityScan("com.eventwave.model")
 @EnableJpaRepositories("com.eventwave.repository")
 @ComponentScan(basePackages = {
-		"com.emp.eventmanagement",         // your main app package
+		"com.eventwave",                   // your main app package
 		"com.eventwave.config",            // for SecurityConfig
 		"com.eventwave.controller",        // if your controllers are here
 		"com.eventwave.service",           // if your services are here
-		"com.eventwave.repository"         // if you use any additional repositories
+		"com.eventwave.repository",
+		"com.eventwave.exception",
+		"com.eventwave.security"
+		// if you use any additional repositories
 	})
 
 public class EventWaveApplication {
