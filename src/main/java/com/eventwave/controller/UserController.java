@@ -23,7 +23,7 @@ public class UserController {
     @PutMapping("/profile/update")
     public String updateProfile(Authentication authentication,
                                  @RequestBody UserProfileUpdateRequest request) {
-        String email = authentication.getName(); // ✅ Gets email from JWT token
+        String email = authentication.getName(); // Gets email from JWT token
         return userService.updateUserProfile(email, request);
     }
 }

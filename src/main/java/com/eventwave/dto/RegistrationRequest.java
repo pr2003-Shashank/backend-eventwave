@@ -16,9 +16,6 @@ public class RegistrationRequest {
     private String password;
 
     @NotBlank
-    private String confirmPassword;
-
-    @NotBlank
     private String role; // e.g., "USER" or "ORGANIZER"
 
     // Getters & Setters
@@ -44,14 +41,6 @@ public class RegistrationRequest {
 
     public void setPassword(String password) {
         this.password = password;
-    }
-
-    public String getConfirmPassword() {
-        return confirmPassword;
-    }
-
-    public void setConfirmPassword(String confirmPassword) {
-        this.confirmPassword = confirmPassword;
     }
 
     public String getRole() {

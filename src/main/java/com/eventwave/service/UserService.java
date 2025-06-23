@@ -10,7 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import com.eventwave.exception.EmailAlreadyExistsException;
-import com.eventwave.exception.PasswordMismatchException;
 
 
 import java.math.BigDecimal;
@@ -28,14 +27,10 @@ public class UserService {
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     public String registerUser(RegistrationRequest request) {
-    	if (!request.getPassword().equals(request.getConfirmPassword())) {
-    	    throw new PasswordMismatchException("Password and Confirm Password do not match.");
-    	}
 
     	if (userRepository.existsByEmail(request.getEmail())) {
     	    throw new EmailAlreadyExistsException("Email already registered.");
     	}
-
 
         // Auto-generate a unique username (e.g., based on email prefix + UUID suffix)
         String emailPrefix = request.getEmail().split("@")[0];
