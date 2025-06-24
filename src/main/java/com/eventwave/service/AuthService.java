@@ -4,6 +4,7 @@ import com.eventwave.config.JwtService;
 import com.eventwave.dto.LoginRequest;
 import com.eventwave.dto.LoginResponse;
 import com.eventwave.dto.UserDTO;
+import com.eventwave.exception.ApiException;
 import com.eventwave.model.Role;
 import com.eventwave.model.User;
 import com.eventwave.repository.UserRepository;
@@ -25,14 +26,14 @@ public class AuthService {
 
     public LoginResponse login(LoginRequest request) {
         User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("Invalid email or password"));
+                .orElseThrow(() -> new ApiException("error","Invalid email or password"));
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
-            throw new RuntimeException("Invalid email or password");
+            throw new ApiException("error","Invalid email or password");
         }
         
         else if (!user.getRoles().stream().anyMatch(role -> role.getName().equalsIgnoreCase(request.getRole()))) {
-        	throw new RuntimeException("Invalid credentials");
+        	throw new ApiException("error","Invalid credentials");
         }
         
         String token = jwtService.generateToken(user.getEmail());
