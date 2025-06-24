@@ -2,6 +2,9 @@ package com.eventwave.service;
 
 import com.eventwave.config.JwtService;
 import com.eventwave.dto.LoginRequest;
+import com.eventwave.dto.LoginResponse;
+import com.eventwave.dto.UserDTO;
+import com.eventwave.model.Role;
 import com.eventwave.model.User;
 import com.eventwave.repository.UserRepository;
 
@@ -20,7 +23,7 @@ public class AuthService {
 
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
-    public String login(LoginRequest request) {
+    public LoginResponse login(LoginRequest request) {
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new RuntimeException("Invalid email or password"));
 
@@ -32,6 +35,20 @@ public class AuthService {
         	throw new RuntimeException("Invalid credentials");
         }
         
-        return jwtService.generateToken(user.getEmail());
+        String token = jwtService.generateToken(user.getEmail());
+        
+        String matchedRole = user.getRoles().stream()
+                .filter(role -> role.getName().equalsIgnoreCase(request.getRole()))
+                .map(Role::getName)
+                .findFirst()
+                .orElse("UNKNOWN");
+
+        UserDTO userDTO = new UserDTO();
+        userDTO.setFullName(user.getFullName());
+        userDTO.setUsername(user.getUsername());
+        userDTO.setEmail(user.getEmail());
+        userDTO.setRole(matchedRole);
+
+        return new LoginResponse("success", "Login successful", token, userDTO);
     }
 }

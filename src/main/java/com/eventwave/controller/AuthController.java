@@ -1,6 +1,7 @@
 package com.eventwave.controller;
 
 import com.eventwave.dto.LoginRequest;
+import com.eventwave.dto.LoginResponse;
 import com.eventwave.service.AuthService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -13,7 +14,7 @@ public class AuthController {
     private AuthService authService;
 
     @PostMapping("/login")
-    public String login(@RequestBody LoginRequest request) {
+    public LoginResponse login(@RequestBody LoginRequest request) {
         return authService.login(request);
     }
 }
