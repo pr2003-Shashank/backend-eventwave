@@ -3,10 +3,10 @@ package com.eventwave.dto;
 public class UserDTO {
 	
 	private String fullName;
-	
-    private String username;
-    
-    private String email;
+
+	private String username;
+
+	private String email;
     
     private String role;
 
