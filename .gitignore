@@ -1,6 +1,8 @@
 HELP.md
 
 .env
+# Ignore Spring Boot config
+src/main/resources/application-local.properties
 
 ### STS ###
 .apt_generated
