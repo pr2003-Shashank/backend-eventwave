@@ -1,4 +1,4 @@
-package com.eventwave.config;
+package com.eventwave.service;
 
 import com.eventwave.model.User;
 import com.eventwave.repository.UserRepository;

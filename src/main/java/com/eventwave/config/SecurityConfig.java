@@ -14,6 +14,8 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 
+import com.eventwave.security.JwtAuthFilter;
+
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
@@ -33,7 +35,8 @@ public class SecurityConfig {
             .cors(Customizer.withDefaults())
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/auth/register", "/api/auth/login").permitAll()
-                .requestMatchers("/api/auth/profile/update").authenticated()
+                .requestMatchers("/api/auth/profile/update","/api/events/create").authenticated()
+                .requestMatchers("/api/events", "/api/events/*", "/api/categories").permitAll()
                 .anyRequest().authenticated()
             )
             .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

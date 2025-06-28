@@ -1,6 +1,5 @@
 package com.eventwave.service;
 
-import com.eventwave.config.JwtService;
 import com.eventwave.dto.LoginRequest;
 import com.eventwave.dto.LoginResponse;
 import com.eventwave.dto.UserDTO;
@@ -25,6 +24,7 @@ public class AuthService {
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     public LoginResponse login(LoginRequest request) {
+    	// Fetch user
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new ApiException("error","Invalid email or password"));
 
@@ -32,6 +32,7 @@ public class AuthService {
             throw new ApiException("error","Invalid email or password");
         }
         
+        // Check if user's role matches role in incoming request (UX)
         else if (!user.getRoles().stream().anyMatch(role -> role.getName().equalsIgnoreCase(request.getRole()))) {
         	throw new ApiException("error","Invalid credentials");
         }

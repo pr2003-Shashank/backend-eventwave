@@ -1,4 +1,4 @@
-package com.eventwave.config;
+package com.eventwave.service;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;

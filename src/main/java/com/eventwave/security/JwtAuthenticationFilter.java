@@ -12,8 +12,8 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import com.eventwave.config.CustomUserDetailsService;
-import com.eventwave.config.JwtService;
+import com.eventwave.service.CustomUserDetailsService;
+import com.eventwave.service.JwtService;
 
 import java.io.IOException;
 

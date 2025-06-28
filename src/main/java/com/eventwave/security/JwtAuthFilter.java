@@ -1,4 +1,4 @@
-package com.eventwave.config;
+package com.eventwave.security;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -12,6 +12,9 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+
+import com.eventwave.service.CustomUserDetailsService;
+import com.eventwave.service.JwtService;
 
 import java.io.IOException;
 
