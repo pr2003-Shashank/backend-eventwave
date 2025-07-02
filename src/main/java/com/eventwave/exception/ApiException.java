@@ -7,6 +7,11 @@ public class ApiException extends RuntimeException{
 		this.message = message;
 	}
 
+	   public ApiException(String message) {
+	        super(message);
+	        this.message = message;
+	        this.status = "ERROR";
+	    }
 	private String status;
 	
 	private String message;

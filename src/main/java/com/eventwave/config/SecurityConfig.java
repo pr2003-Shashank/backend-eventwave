@@ -37,6 +37,8 @@ public class SecurityConfig {
                 .requestMatchers("/api/auth/register", "/api/auth/login").permitAll()
                 .requestMatchers("/api/auth/profile/update","/api/events/create").authenticated()
                 .requestMatchers("/api/events", "/api/events/*", "/api/categories").permitAll()
+                .requestMatchers("/api/registrations/attendees/**").hasRole("ORGANIZER")
+
                 .anyRequest().authenticated()
             )
             .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
