@@ -86,7 +86,7 @@ public class RegistrationService {
         return registrations.stream()
                 .map(r -> {
                     User attendee = r.getUser();
-                    return new AttendeeDTO(attendee.getId(), attendee.getEmail(), attendee.getFullName());
+                    return new AttendeeDTO(attendee.getId(), attendee.getUsername(), attendee.getEmail(), attendee.getFullName());
                 })
                 .toList();
     }
