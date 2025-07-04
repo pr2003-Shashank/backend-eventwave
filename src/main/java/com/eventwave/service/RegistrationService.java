@@ -54,7 +54,7 @@ public class RegistrationService {
 
         Registration saved = registrationRepository.save(registration);
 
-        return new RegistrationResponseDTO("SUCCESS", "Registration successful", saved.getId(), saved.getRegisteredAt());
+        return new RegistrationResponseDTO("success", "Registration successful", saved.getId(), saved.getRegisteredAt());
     }
 
 

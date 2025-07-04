@@ -5,7 +5,6 @@ import com.eventwave.dto.AttendeeDTO;
 import com.eventwave.dto.AttendeeSummaryDTO;
 import com.eventwave.dto.EventRegistrationRequest;
 import com.eventwave.dto.RegistrationResponseDTO;
-import com.eventwave.model.Registration;
 import com.eventwave.service.RegistrationService;
 
 import jakarta.validation.Valid;
@@ -35,7 +34,6 @@ public class RegistrationController {
     }
 
 
-
     @DeleteMapping("/unregister")
     public ResponseEntity<ApiResponse> unregister(
             @RequestParam Long eventId,
@@ -43,7 +41,7 @@ public class RegistrationController {
 
         String email = userDetails.getUsername(); // JWT → email
         String message = registrationService.unregisterFromEvent(eventId, email);
-        return ResponseEntity.ok(new ApiResponse("SUCCESS", message));
+        return ResponseEntity.ok(new ApiResponse("success", message));
     }
 
 
@@ -66,6 +64,5 @@ public class RegistrationController {
         AttendeeSummaryDTO summary = registrationService.getAttendeeSummary(eventId, organizerEmail);
         return ResponseEntity.ok(summary);
     }
-
 
 }

@@ -17,6 +17,8 @@ import com.eventwave.model.Event;
 import com.eventwave.model.User;
 import com.eventwave.repository.CategoryRepository;
 import com.eventwave.repository.EventRepository;
+import com.eventwave.repository.FavoriteRepository;
+import com.eventwave.repository.RegistrationRepository;
 import com.eventwave.repository.UserRepository;
 
 @Service
@@ -30,6 +32,12 @@ public class EventService {
 	
 	@Autowired
 	private CategoryRepository categoryRepository;
+	
+	@Autowired
+	private RegistrationRepository registrationRepository;
+
+	@Autowired
+	private FavoriteRepository favoriteRepository;
 	
 	@Autowired
 	private S3Service s3Service;
@@ -91,20 +99,15 @@ public class EventService {
 	        dto.setLocation(event.getLocation());
 	        dto.setImageUrl(event.getImageUrl());
 
-	        /* The logic for calculating available seats goes here after registration feature is implemented */
 	        
-	        // int registeredCount = registrationRepository.countByEventId(event.getId());   
-	        // dto.setAvailableSeats(event.getCapacity() - registeredCount);
+	        int registeredCount = registrationRepository.countByEventId(event.getId());   
+	        dto.setAvailableSeats(event.getCapacity() - registeredCount);
 	        
-	        dto.setAvailableSeats(event.getCapacity());
-
 	        if (emailOrNull != null) {
 		        User user = userRepository.findByEmail(emailOrNull)
 		                .orElseThrow(() -> new RuntimeException("User not found"));
-		        // dto.setRegistered(registrationRepository.existsByUserIdAndEventId(user.getId(), event.getId()));
-		        // dto.setFavorite(favoriteRepository.existsByUserIdAndEventId(user.getId(), event.getId()));
-		        dto.setRegistered(false);
-		        dto.setFavorite(false);
+		        dto.setRegistered(registrationRepository.existsByUserIdAndEventId(user.getId(), event.getId()));
+		        dto.setFavorite(favoriteRepository.existsByUserIdAndEventId(user.getId(), event.getId()));
 		    }
 
 	        return dto;
@@ -129,10 +132,8 @@ public class EventService {
 	    dto.setPrice(event.getPrice());
 	    dto.setCapacity(event.getCapacity());
 
-	    /* The logic for calculating available seats goes here after registration feature is implemented */
-	    // int registeredCount = registrationRepository.countByEventId(event.getId());
-	    // dto.setAvailableSeats(event.getCapacity() - registeredCount);
-	    dto.setAvailableSeats(event.getCapacity());
+	    int registeredCount = registrationRepository.countByEventId(event.getId());
+	    dto.setAvailableSeats(event.getCapacity() - registeredCount);
 
 	    dto.setCategoryName(event.getCategory().getName());
 
@@ -145,10 +146,8 @@ public class EventService {
 	    if (emailOrNull != null) {
 	        User user = userRepository.findByEmail(emailOrNull)
 	                .orElseThrow(() -> new RuntimeException("User not found"));
-	        // dto.setRegistered(registrationRepository.existsByUserIdAndEventId(user.getId(), event.getId()));
-	        // dto.setFavorite(favoriteRepository.existsByUserIdAndEventId(user.getId(), event.getId()));
-	        dto.setRegistered(false);
-	        dto.setFavorite(false);
+	        dto.setRegistered(registrationRepository.existsByUserIdAndEventId(user.getId(), event.getId()));
+	        dto.setFavorite(favoriteRepository.existsByUserIdAndEventId(user.getId(), event.getId()));
 	    }
 
 	    return dto;
