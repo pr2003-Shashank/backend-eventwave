@@ -14,6 +14,7 @@ import com.eventwave.dto.EventSummaryDTO;
 import com.eventwave.exception.ApiException;
 import com.eventwave.model.Category;
 import com.eventwave.model.Event;
+import com.eventwave.model.Registration;
 import com.eventwave.model.User;
 import com.eventwave.repository.CategoryRepository;
 import com.eventwave.repository.EventRepository;
@@ -86,7 +87,6 @@ public class EventService {
         return new ApiResponse("success", "Event created successfully");
     }
 	
-	
 	public List<EventSummaryDTO> getAllEvents(String emailOrNull) {
 	    List<Event> events = eventRepository.findAll();
 
@@ -98,9 +98,10 @@ public class EventService {
 	        dto.setDate(event.getDate());
 	        dto.setLocation(event.getLocation());
 	        dto.setImageUrl(event.getImageUrl());
-
+		    dto.setCategoryName(event.getCategory().getName());
 	        
 	        int registeredCount = registrationRepository.countByEventId(event.getId());   
+		    dto.setRegisteredSeats(registeredCount);
 	        dto.setAvailableSeats(event.getCapacity() - registeredCount);
 	        
 	        if (emailOrNull != null) {
@@ -113,6 +114,53 @@ public class EventService {
 	        return dto;
 	    }).collect(Collectors.toList());
 	}
+	
+	public List<EventSummaryDTO> getMyEvents(String email) {
+	    User user = userRepository.findByEmail(email)
+	            .orElseThrow(() -> new ApiException("error", "User not found"));
+
+	    boolean isOrganizer = user.getRoles().stream()
+	            .anyMatch(role -> role.getName().equalsIgnoreCase("ORGANIZER"));
+
+	    List<Event> events;
+
+	    if (isOrganizer) {
+	        // Fetch events hosted by this organizer
+	        events = eventRepository.findByOrganizer(user);
+	    } else {
+	        // Fetch events registered by the user
+	        List<Registration> registrations = registrationRepository.findByUser(user);
+	        events = registrations.stream()
+	                .map(Registration::getEvent)
+	                .collect(Collectors.toList());
+	    }
+
+	    return events.stream().map(event -> {
+	    	 EventSummaryDTO dto = new EventSummaryDTO();
+		        dto.setId(event.getId());
+		        dto.setTitle(event.getTitle());
+		        dto.setDescription(event.getDescription());
+		        dto.setDate(event.getDate());
+		        dto.setLocation(event.getLocation());
+		        dto.setImageUrl(event.getImageUrl());
+			    dto.setCategoryName(event.getCategory().getName());
+		        
+		        int registeredCount = registrationRepository.countByEventId(event.getId());   
+		        dto.setRegisteredSeats(registeredCount);
+		        dto.setAvailableSeats(event.getCapacity() - registeredCount);
+		        
+		        if (isOrganizer) {
+			        dto.setRegistered(false);
+			        dto.setFavorite(false);
+			    }
+		        else {
+				    dto.setRegistered(registrationRepository.existsByUserIdAndEventId(user.getId(), event.getId()));
+				    dto.setFavorite(favoriteRepository.existsByUserIdAndEventId(user.getId(), event.getId()));
+		        }
+		        return dto;
+		    }).collect(Collectors.toList());
+	}
+
 	
 	public EventDetailDTO getEventById(Long eventId, String emailOrNull) {
 		Event event = eventRepository.findById(eventId)

@@ -106,6 +106,4 @@ public class RegistrationService {
         return new AttendeeSummaryDTO(event.getId(), event.getTitle(), capacity, registered, available);
     }
 
-
-
 }

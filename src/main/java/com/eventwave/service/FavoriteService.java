@@ -14,6 +14,7 @@ import com.eventwave.model.Favorite;
 import com.eventwave.model.User;
 import com.eventwave.repository.EventRepository;
 import com.eventwave.repository.FavoriteRepository;
+import com.eventwave.repository.RegistrationRepository;
 import com.eventwave.repository.UserRepository;
 
 @Service
@@ -24,6 +25,9 @@ public class FavoriteService {
 
     @Autowired
     private UserRepository userRepository;
+    
+    @Autowired
+    private RegistrationRepository registrationRepository;
 
     @Autowired
     private EventRepository eventRepository;
@@ -74,9 +78,13 @@ public class FavoriteService {
             dto.setDate(event.getDate());
             dto.setLocation(event.getLocation());
             dto.setImageUrl(event.getImageUrl());
-            dto.setAvailableSeats(event.getCapacity()); // optional
+            
+            int registeredCount = registrationRepository.countByEventId(event.getId());   
+	        dto.setAvailableSeats(event.getCapacity() - registeredCount);
+	        
+	        dto.setRegistered(registrationRepository.existsByUserIdAndEventId(user.getId(), event.getId()));
+
             dto.setFavorite(true);
-            dto.setRegistered(false); // optional
             return dto;
         }).collect(Collectors.toList());
     }

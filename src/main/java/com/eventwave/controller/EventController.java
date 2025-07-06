@@ -72,6 +72,11 @@ public class EventController {
 	    String email = (authentication != null) ? authentication.getName() : null;
 	    return eventService.getAllEvents(email);
 	}
+	@GetMapping("/my-events")
+	public List<EventSummaryDTO> getMyEvents(Authentication authentication) {
+	    String email = authentication.getName();
+	    return eventService.getMyEvents(email);
+	}
 
 	@GetMapping("/{id}")
 	public EventDetailDTO getEventDetails(@PathVariable Long id, Authentication authentication) {
@@ -119,5 +124,7 @@ public class EventController {
 	    String email = authentication.getName();
 	    return eventService.deleteEvent(eventId, email);
 	}
+	
+	
 
 }

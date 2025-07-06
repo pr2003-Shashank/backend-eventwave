@@ -7,10 +7,14 @@ public class EventSummaryDTO {
 	private Long id;
 	private String title;
 	private String description;
+	private String categoryName;
 	private LocalDate date;
 	private String location;
 	private String imageUrl;
 	private int availableSeats;
+	
+	//This is returned for organizers
+	private int registeredSeats;
 
 	// These are only returned if user is logged in
 	private Boolean registered;
@@ -47,6 +51,14 @@ public class EventSummaryDTO {
 	public void setDate(LocalDate date) {
 		this.date = date;
 	}
+	
+	public String getCategoryName() {
+		return categoryName;
+	}
+
+	public void setCategoryName(String categoryName) {
+		this.categoryName = categoryName;
+	}
 
 	public String getLocation() {
 		return location;
@@ -70,6 +82,14 @@ public class EventSummaryDTO {
 
 	public void setAvailableSeats(int availableSeats) {
 		this.availableSeats = availableSeats;
+	}
+	
+	public int getRegisteredSeats() {
+		return registeredSeats;
+	}
+
+	public void setRegisteredSeats(int registeredSeats) {
+		this.registeredSeats = registeredSeats;
 	}
 
 	public Boolean getRegistered() {
