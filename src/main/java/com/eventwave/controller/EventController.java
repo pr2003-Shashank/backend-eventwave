@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
@@ -21,6 +22,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.eventwave.dto.ApiResponse;
 import com.eventwave.dto.EventCreateRequest;
 import com.eventwave.dto.EventDetailDTO;
+import com.eventwave.dto.EventFilterDTO;
 import com.eventwave.dto.EventSummaryDTO;
 import com.eventwave.service.EventService;
 
@@ -82,6 +84,12 @@ public class EventController {
 	public EventDetailDTO getEventDetails(@PathVariable Long id, Authentication authentication) {
 	    String email = (authentication != null) ? authentication.getName() : null;
 	    return eventService.getEventById(id, email);
+	}
+	
+	@PostMapping("/filter")
+	public List<EventSummaryDTO> filterEvents(@RequestBody EventFilterDTO filter, Authentication authentication) {
+	    String email = (authentication != null) ? authentication.getName() : null;
+	    return eventService.filterEvents(filter,email);
 	}
 	
 	@PutMapping("/edit/{id}")

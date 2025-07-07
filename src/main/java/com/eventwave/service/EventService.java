@@ -4,12 +4,14 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.eventwave.dto.ApiResponse;
 import com.eventwave.dto.EventCreateRequest;
 import com.eventwave.dto.EventDetailDTO;
+import com.eventwave.dto.EventFilterDTO;
 import com.eventwave.dto.EventSummaryDTO;
 import com.eventwave.exception.ApiException;
 import com.eventwave.model.Category;
@@ -21,6 +23,7 @@ import com.eventwave.repository.EventRepository;
 import com.eventwave.repository.FavoriteRepository;
 import com.eventwave.repository.RegistrationRepository;
 import com.eventwave.repository.UserRepository;
+import com.eventwave.specification.EventSpecifications;
 
 @Service
 public class EventService {
@@ -200,6 +203,63 @@ public class EventService {
 
 	    return dto;
 	}
+	
+	public List<EventSummaryDTO> filterEvents(EventFilterDTO filter, String emailOrNull) {
+	    Specification<Event> spec = Specification.where(null);
+
+	    if (filter.getStartDate() != null && filter.getEndDate() != null) {
+	        spec = spec.and(EventSpecifications.hasDateBetween(filter.getStartDate(), filter.getEndDate()));
+	    }
+	    if (filter.getStartDate() != null) {
+	        spec = spec.and(EventSpecifications.hasStartDateAfter(filter.getStartDate()));
+	    }
+	    if (filter.getEndDate() != null) {
+	        spec = spec.and(EventSpecifications.hasEndDateBefore(filter.getEndDate()));
+	    }
+	    if (filter.getCategoryId() != null) {
+	        spec = spec.and(EventSpecifications.hasCategory(filter.getCategoryId()));
+	    }
+	    if (filter.getLocation() != null) {
+	        spec = spec.and(EventSpecifications.hasLocationLike(filter.getLocation()));
+	    }
+	    if (filter.getKeyword() != null) {
+	        spec = spec.and(EventSpecifications.hasKeywordInTitleOrDescription(filter.getKeyword()));
+	    }
+
+	    List<Event> events = eventRepository.findAll(spec);
+
+	    User user = null;
+	    if (emailOrNull != null) {
+	        user = userRepository.findByEmail(emailOrNull)
+	                .orElseThrow(() -> new RuntimeException("User not found"));
+	    }
+	    
+	    User finalUser = user; // Effectively final for lambda
+
+	    return events.stream().map(event -> {
+	        EventSummaryDTO dto = new EventSummaryDTO();
+	        dto.setId(event.getId());
+	        dto.setTitle(event.getTitle());
+	        dto.setDescription(event.getDescription());
+	        dto.setDate(event.getDate());
+	        dto.setLocation(event.getLocation());
+	        dto.setImageUrl(event.getImageUrl());
+	        dto.setCategoryName(event.getCategory().getName());
+
+	        int registeredCount = registrationRepository.countByEventId(event.getId());
+	        dto.setRegisteredSeats(registeredCount);
+	        dto.setAvailableSeats(event.getCapacity() - registeredCount);
+
+	        if (finalUser != null) {
+	            dto.setRegistered(registrationRepository.existsByUserIdAndEventId(finalUser.getId(), event.getId()));
+	            dto.setFavorite(favoriteRepository.existsByUserIdAndEventId(finalUser.getId(), event.getId()));
+	        }
+
+	        return dto;
+	    }).collect(Collectors.toList());
+	}
+
+
 	
 	public ApiResponse updateEvent(Long eventId, String email, EventCreateRequest request) {
 	    // Fetch user
