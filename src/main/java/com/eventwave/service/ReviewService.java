@@ -2,6 +2,7 @@ package com.eventwave.service;
 
 import com.eventwave.dto.ReviewRequestDTO;
 import com.eventwave.dto.ReviewResponseDTO;
+import com.eventwave.dto.ReviewStatsDTO;
 import com.eventwave.exception.ApiException;
 import com.eventwave.model.Event;
 import com.eventwave.model.Registration;
@@ -22,6 +23,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -129,4 +131,31 @@ public class ReviewService {
                 r.getCreatedAt()
         ));
     }
+    
+    public ReviewStatsDTO getReviewStatsForEvent(Long eventId) {
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new ApiException("Event not found"));
+
+        List<Review> reviews = reviewRepository.findByEvent(event);
+
+        if (reviews.isEmpty()) {
+            return new ReviewStatsDTO(0.0, 0, Map.of(1, 0L, 2, 0L, 3, 0L, 4, 0L, 5, 0L));
+        }
+
+        double average = reviews.stream()
+                .mapToInt(Review::getRating)
+                .average()
+                .orElse(0.0);
+
+        Map<Integer, Long> breakdown = reviews.stream()
+                .collect(Collectors.groupingBy(Review::getRating, Collectors.counting()));
+
+        // Ensure all 1–5 stars are included even if count is 0
+        for (int i = 1; i <= 5; i++) {
+            breakdown.putIfAbsent(i, 0L);
+        }
+
+        return new ReviewStatsDTO(average, reviews.size(), breakdown);
+    }
+
 }

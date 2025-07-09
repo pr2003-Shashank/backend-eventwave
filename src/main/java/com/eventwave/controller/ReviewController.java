@@ -3,6 +3,7 @@ package com.eventwave.controller;
 import com.eventwave.dto.ApiResponse;
 import com.eventwave.dto.ReviewRequestDTO;
 import com.eventwave.dto.ReviewResponseDTO;
+import com.eventwave.dto.ReviewStatsDTO;
 import com.eventwave.service.ReviewService;
 
 import java.util.List;
@@ -61,5 +62,12 @@ public class ReviewController {
         Page<ReviewResponseDTO> reviews = reviewService.getFilteredReviews(eventId, minRating, page, size);
         return ResponseEntity.ok(reviews);
     }
+    
+    @GetMapping("/summary/{eventId}")
+    public ResponseEntity<ReviewStatsDTO> getReviewStats(@PathVariable Long eventId) {
+        ReviewStatsDTO stats = reviewService.getReviewStatsForEvent(eventId);
+        return ResponseEntity.ok(stats);
+    }
+
 
 }
