@@ -132,7 +132,5 @@ public class EventController {
 	    String email = authentication.getName();
 	    return eventService.deleteEvent(eventId, email);
 	}
-	
-	
 
 }

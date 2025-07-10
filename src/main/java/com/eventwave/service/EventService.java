@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.eventwave.dto.ApiResponse;
@@ -24,6 +25,7 @@ import com.eventwave.repository.FavoriteRepository;
 import com.eventwave.repository.RegistrationRepository;
 import com.eventwave.repository.UserRepository;
 import com.eventwave.specification.EventSpecifications;
+
 
 @Service
 public class EventService {
@@ -45,6 +47,9 @@ public class EventService {
 	
 	@Autowired
 	private S3Service s3Service;
+	
+	@Autowired
+	private EmailService emailService;
 	
 	public ApiResponse createEvent(String email, EventCreateRequest request) {
 		
@@ -310,6 +315,7 @@ public class EventService {
 	}
 
 
+	@Transactional
 	public ApiResponse deleteEvent(Long eventId, String email) {
 	    User organizer = userRepository.findByEmail(email)
 	            .orElseThrow(() -> new ApiException("error", "User not found"));
@@ -325,8 +331,33 @@ public class EventService {
 	        throw new ApiException("forbidden", "You are not allowed to delete this event.");
 	    }
 
-	    eventRepository.delete(event);
-	    return new ApiResponse("success", "Event deleted successfully");
-	}
+	    // Get all registrations for this event
+	    List<Registration> registrations = registrationRepository.findByEvent(event);
 
+	    // Notify each registered user
+	    for (Registration reg : registrations) {
+	        User user = reg.getUser();
+	        String name = user.getFullName();
+	        String subject = "Event Cancelled: " + event.getTitle();
+	        String body = "Dear " + name + ",\n\n"
+	                + "We regret to inform you that the event '" + event.getTitle() + "' scheduled on "
+	                + event.getDate() + " at " + event.getLocation() + " has been cancelled.\n\n"
+	                + "We apologize for any inconvenience.\n\n"
+	                + "Thanks,\nEventWave Team";
+
+	        emailService.sendEventDeletionEmail(user.getEmail(), subject, body);
+	    }
+	    
+	    // Delete all registrations
+	    registrationRepository.deleteAll(registrations);
+	    
+	    // Delete all favorites
+	    favoriteRepository.deleteByEvent(event);
+
+	    // Delete the event 
+	    eventRepository.delete(event);
+
+	    return new ApiResponse("success", "Event deleted and users notified.");
+	}
+	
 }
