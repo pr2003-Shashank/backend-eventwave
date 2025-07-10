@@ -29,6 +29,9 @@ public class RegistrationService {
 
     @Autowired
     private UserRepository userRepository;
+    
+    @Autowired
+    private EmailService emailService;
 
     @Transactional
     public RegistrationResponseDTO registerForEvent(Long eventId, String userEmail) {
@@ -45,6 +48,14 @@ public class RegistrationService {
         if (registrationRepository.findByEvent(event).size() >= event.getCapacity()) {
             throw new ApiException("Event is at full capacity");
         }
+        
+        // Email for registration success
+        String subject = "Successfully Registered for: " + event.getTitle();
+        String body = "Dear " + user.getFullName() + ",\n\n"
+                + "You have successfully registered for, \n" + event.getTitle() 
+                + "\nOrganized by " + event.getOrganizer().getFullName() 
+                + "\nscheduled on " + event.getDate() + "\n\n"
+                + "Thanks,\nEventWave Team";
 
         Registration registration = new Registration();
         registration.setEvent(event);
@@ -53,6 +64,9 @@ public class RegistrationService {
         registration.setRegisteredAt(LocalDateTime.now());
 
         Registration saved = registrationRepository.save(registration);
+        
+        //send mail
+        emailService.sendSimpleEmail(user.getEmail(), subject, body); 
 
         return new RegistrationResponseDTO("success", "Registration successful", saved.getId(), saved.getRegisteredAt());
     }

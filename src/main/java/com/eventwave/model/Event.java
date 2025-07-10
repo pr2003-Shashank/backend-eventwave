@@ -61,8 +61,11 @@ public class Event {
 
     @Column(name = "image_url")
     private String imageUrl;
+    
+    @Column(nullable = false)
+    private boolean notified = false;
 
-    public Long getId() {
+	public Long getId() {
 		return id;
 	}
 
@@ -173,7 +176,13 @@ public class Event {
 	public void setImageUrl(String imageUrl) {
 		this.imageUrl = imageUrl;
 	}
-
 	
+	public boolean isNotified() {
+		return notified;
+	}
+
+	public void setNotified(boolean notified) {
+		this.notified = notified;
+	}
 
 }

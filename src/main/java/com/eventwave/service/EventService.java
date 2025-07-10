@@ -1,5 +1,7 @@
 package com.eventwave.service;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -264,7 +266,6 @@ public class EventService {
 	    }).collect(Collectors.toList());
 	}
 
-
 	
 	public ApiResponse updateEvent(Long eventId, String email, EventCreateRequest request) {
 	    // Fetch user
@@ -284,6 +285,12 @@ public class EventService {
 	    if (!event.getOrganizer().getId().equals(organizer.getId())) {
 	        throw new ApiException("forbidden", "You are not allowed to edit this event.");
 	    }
+	    
+	    // Store old values to compare
+	    LocalDate oldDate = event.getDate();
+	    LocalTime oldStart = event.getStartTime();
+	    LocalTime oldEnd = event.getEndTime();
+	    String oldLocation = event.getLocation();
 
 	    // Optional: upload new image if present
 	    String imageUrl = event.getImageUrl(); // retain old if not updated
@@ -309,6 +316,33 @@ public class EventService {
 	    event.setCapacity(request.getCapacity());
 	    event.setImageUrl(imageUrl);
 	    event.setCategory(category);
+	    
+	    // Check for changes in critical fields
+	    boolean isDateChanged = !oldDate.equals(event.getDate());
+	    boolean isStartChanged = !oldStart.equals(event.getStartTime());
+	    boolean isEndChanged = !oldEnd.equals(event.getEndTime());
+	    boolean isLocationChanged = !oldLocation.equals(event.getLocation());
+
+	    if (isDateChanged || isStartChanged || isEndChanged || isLocationChanged) {
+	        List<Registration> registrations = registrationRepository.findByEvent(event);
+
+	        for (Registration reg : registrations) {
+	            User user = reg.getUser();
+	            String subject = "Event Update: " + event.getTitle();
+	            String body = "Dear " + user.getFullName() + ",\n\n"
+	                    + "The event you registered for, " + event.getTitle() + " , has been updated.\n\n"
+	                    + "New Details:\n"
+	                    + "Date: " + event.getDate() + "\n"
+	                    + "Start Time: " + event.getStartTime() + "\n"
+	                    + "End Time: " + event.getEndTime() + "\n"
+	                    + "Location: " + event.getLocation() + "\n\n"
+	                    + "Please check your dashboard for more info.\n\n"
+	                    + "We apologize for any inconvenience.\n\n"
+	                    + "Thanks,\nEventWave Team";
+
+	            emailService.sendSimpleEmail(user.getEmail(), subject, body); 
+	        }
+	    }
 
 	    eventRepository.save(event);
 	    return new ApiResponse("success", "Event updated successfully");
@@ -345,7 +379,7 @@ public class EventService {
 	                + "We apologize for any inconvenience.\n\n"
 	                + "Thanks,\nEventWave Team";
 
-	        emailService.sendEventDeletionEmail(user.getEmail(), subject, body);
+	        emailService.sendSimpleEmail(user.getEmail(), subject, body);
 	    }
 	    
 	    // Delete all registrations
