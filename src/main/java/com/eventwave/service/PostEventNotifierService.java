@@ -25,7 +25,7 @@ public class PostEventNotifierService {
     @Autowired
     private EmailService emailService;
 
-	@Scheduled(cron = "0 0 * * * *") // Every hour
+	@Scheduled(cron = "0 */15 * * * *") 
 	public void sendFeedbackEmails() {
 	    LocalTime now = LocalTime.now();
 	    List<Event> completedEvents = eventRepository.findByEndTimeBeforeAndNotifiedFalse(now);
