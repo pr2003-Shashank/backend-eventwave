@@ -1,5 +1,6 @@
 package com.eventwave.repository;
 
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -18,4 +19,5 @@ public interface EventRepository extends JpaRepository<Event, Long>, JpaSpecific
 	@Query("SELECT e FROM Event e WHERE e.id = :eventId")
 	Optional<Event> findByIdWithLock(@Param("eventId") Long eventId);
 	List<Event> findByOrganizer(User organizer);
+	List<Event> findByEndTimeBeforeAndNotifiedFalse(LocalTime time);
 }

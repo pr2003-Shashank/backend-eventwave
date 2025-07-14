@@ -12,6 +12,8 @@ import com.eventwave.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import com.eventwave.exception.ApiException;
 import com.eventwave.exception.EmailAlreadyExistsException;
 
 import java.util.Set;
@@ -24,34 +26,46 @@ public class UserService {
 
 	@Autowired
 	private UserRepository userRepository;
+	
+	@Autowired
+	private OtpService otpService;
 
 	private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
 	public ApiResponse registerUser(RegistrationRequest request) {
 
-		if (userRepository.existsByEmail(request.getEmail())) {
-			throw new EmailAlreadyExistsException("Email already registered.");
-		}
+	    if (userRepository.existsByEmail(request.getEmail())) {
+	        throw new EmailAlreadyExistsException("Email already registered.");
+	    }
 
-		// Auto-generate a unique username (e.g., based on email prefix + UUID suffix)
-		String emailPrefix = request.getEmail().split("@")[0];
-		String generatedUsername = emailPrefix + "_" + System.currentTimeMillis();
+	    if (!otpService.isEmailVerified(request.getEmail())) {
+	        throw new ApiException("email_not_verified", "Please verify your email before registering.");
+	    }
 
-		User user = new User();
-		user.setUsername(generatedUsername);
-		user.setEmail(request.getEmail());
-		user.setFullName(request.getFullName());
-		user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
+	    // Generate unique username
+	    String emailPrefix = request.getEmail().split("@")[0];
+	    String generatedUsername = emailPrefix + "_" + System.currentTimeMillis();
 
-		// Assign role
-		String roleName = request.getRole().toUpperCase();
-		Role role = roleRepository.findByName(roleName)
-				.orElseThrow(() -> new RuntimeException("Role not found: " + roleName));
-		user.setRoles(Set.of(role));
+	    User user = new User();
+	    user.setUsername(generatedUsername);
+	    user.setEmail(request.getEmail());
+	    user.setFullName(request.getFullName());
+	    user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
 
-		userRepository.save(user);
-		return new ApiResponse("success", "User registered successfully");
+	    // Assign role
+	    String roleName = request.getRole().toUpperCase();
+	    Role role = roleRepository.findByName(roleName)
+	            .orElseThrow(() -> new RuntimeException("Role not found: " + roleName));
+	    user.setRoles(Set.of(role));
+
+	    userRepository.save(user);
+
+	    // Clean up verified email after successful registration
+	    otpService.removeVerifiedEmail(request.getEmail());
+
+	    return new ApiResponse("success", "User registered successfully");
 	}
+
 
 	public UserProfileDTO getUserProfile(String email) {
 		User user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));

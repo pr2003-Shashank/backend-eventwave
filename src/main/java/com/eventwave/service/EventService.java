@@ -1,11 +1,14 @@
 package com.eventwave.service;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.eventwave.dto.ApiResponse;
@@ -24,6 +27,7 @@ import com.eventwave.repository.FavoriteRepository;
 import com.eventwave.repository.RegistrationRepository;
 import com.eventwave.repository.UserRepository;
 import com.eventwave.specification.EventSpecifications;
+
 
 @Service
 public class EventService {
@@ -45,6 +49,9 @@ public class EventService {
 	
 	@Autowired
 	private S3Service s3Service;
+	
+	@Autowired
+	private EmailService emailService;
 	
 	public ApiResponse createEvent(String email, EventCreateRequest request) {
 		
@@ -259,7 +266,6 @@ public class EventService {
 	    }).collect(Collectors.toList());
 	}
 
-
 	
 	public ApiResponse updateEvent(Long eventId, String email, EventCreateRequest request) {
 	    // Fetch user
@@ -279,6 +285,12 @@ public class EventService {
 	    if (!event.getOrganizer().getId().equals(organizer.getId())) {
 	        throw new ApiException("forbidden", "You are not allowed to edit this event.");
 	    }
+	    
+	    // Store old values to compare
+	    LocalDate oldDate = event.getDate();
+	    LocalTime oldStart = event.getStartTime();
+	    LocalTime oldEnd = event.getEndTime();
+	    String oldLocation = event.getLocation();
 
 	    // Optional: upload new image if present
 	    String imageUrl = event.getImageUrl(); // retain old if not updated
@@ -304,12 +316,40 @@ public class EventService {
 	    event.setCapacity(request.getCapacity());
 	    event.setImageUrl(imageUrl);
 	    event.setCategory(category);
+	    
+	    // Check for changes in critical fields
+	    boolean isDateChanged = !oldDate.equals(event.getDate());
+	    boolean isStartChanged = !oldStart.equals(event.getStartTime());
+	    boolean isEndChanged = !oldEnd.equals(event.getEndTime());
+	    boolean isLocationChanged = !oldLocation.equals(event.getLocation());
+
+	    if (isDateChanged || isStartChanged || isEndChanged || isLocationChanged) {
+	        List<Registration> registrations = registrationRepository.findByEvent(event);
+
+	        for (Registration reg : registrations) {
+	            User user = reg.getUser();
+	            String subject = "Event Update: " + event.getTitle();
+	            String body = "Dear " + user.getFullName() + ",\n\n"
+	                    + "The event you registered for, " + event.getTitle() + " , has been updated.\n\n"
+	                    + "New Details:\n"
+	                    + "Date: " + event.getDate() + "\n"
+	                    + "Start Time: " + event.getStartTime() + "\n"
+	                    + "End Time: " + event.getEndTime() + "\n"
+	                    + "Location: " + event.getLocation() + "\n\n"
+	                    + "Please check your dashboard for more info.\n\n"
+	                    + "We apologize for any inconvenience.\n\n"
+	                    + "Thanks,\nEventWave Team";
+
+	            emailService.sendSimpleEmail(user.getEmail(), subject, body); 
+	        }
+	    }
 
 	    eventRepository.save(event);
 	    return new ApiResponse("success", "Event updated successfully");
 	}
 
 
+	@Transactional
 	public ApiResponse deleteEvent(Long eventId, String email) {
 	    User organizer = userRepository.findByEmail(email)
 	            .orElseThrow(() -> new ApiException("error", "User not found"));
@@ -325,8 +365,33 @@ public class EventService {
 	        throw new ApiException("forbidden", "You are not allowed to delete this event.");
 	    }
 
-	    eventRepository.delete(event);
-	    return new ApiResponse("success", "Event deleted successfully");
-	}
+	    // Get all registrations for this event
+	    List<Registration> registrations = registrationRepository.findByEvent(event);
 
+	    // Notify each registered user
+	    for (Registration reg : registrations) {
+	        User user = reg.getUser();
+	        String name = user.getFullName();
+	        String subject = "Event Cancelled: " + event.getTitle();
+	        String body = "Dear " + name + ",\n\n"
+	                + "We regret to inform you that the event '" + event.getTitle() + "' scheduled on "
+	                + event.getDate() + " at " + event.getLocation() + " has been cancelled.\n\n"
+	                + "We apologize for any inconvenience.\n\n"
+	                + "Thanks,\nEventWave Team";
+
+	        emailService.sendSimpleEmail(user.getEmail(), subject, body);
+	    }
+	    
+	    // Delete all registrations
+	    registrationRepository.deleteAll(registrations);
+	    
+	    // Delete all favorites
+	    favoriteRepository.deleteByEvent(event);
+
+	    // Delete the event 
+	    eventRepository.delete(event);
+
+	    return new ApiResponse("success", "Event deleted and users notified.");
+	}
+	
 }
