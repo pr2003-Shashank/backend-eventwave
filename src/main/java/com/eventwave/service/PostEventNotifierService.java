@@ -28,7 +28,7 @@ public class PostEventNotifierService {
 	@Scheduled(cron = "0 */15 * * * *") 
 	public void sendFeedbackEmails() {
 	    LocalTime now = LocalTime.now();
-	    List<Event> completedEvents = eventRepository.findByEndTimeBeforeAndNotifiedFalse(now);
+	    List<Event> completedEvents = eventRepository.findCompletedEventsNotNotified();
 
 	    for (Event event : completedEvents) {
 	        List<Registration> registrations = registrationRepository.findByEvent(event);
@@ -41,7 +41,7 @@ public class PostEventNotifierService {
 	            String title = event.getTitle();
 	            String name = user.getFullName();
 	            
-	            String feedbackUrl = "http://localhost:5173/feedback?eventId=" + event.getId();
+	            String feedbackUrl = "https://event-wave-project.vercel.app/feedback?eventId=" + event.getId();
 	            String htmlBody = "<p>Dear " + name + ",</p>"
 	                    + "<p>Thank you for attending <strong>" + title + "</strong>.</p>"
 	                    + "<p>We would really appreciate your feedback.</p>"

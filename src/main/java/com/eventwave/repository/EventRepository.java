@@ -19,5 +19,14 @@ public interface EventRepository extends JpaRepository<Event, Long>, JpaSpecific
 	@Query("SELECT e FROM Event e WHERE e.id = :eventId")
 	Optional<Event> findByIdWithLock(@Param("eventId") Long eventId);
 	List<Event> findByOrganizer(User organizer);
-	List<Event> findByEndTimeBeforeAndNotifiedFalse(LocalTime time);
+	
+	@Query(value = """
+		    SELECT * FROM events 
+		    WHERE notified = false 
+		      AND (
+		            date < CURDATE() 
+		            OR (date = CURDATE() AND end_time <= CURTIME())
+		          )
+		    """, nativeQuery = true)
+		List<Event> findCompletedEventsNotNotified();
 }
