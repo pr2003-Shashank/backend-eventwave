@@ -60,16 +60,16 @@ public class SecurityConfig {
     }
 
     
-    @Bean
-    public CorsFilter corsFilter() {
-        CorsConfiguration config = new CorsConfiguration();
-        config.setAllowCredentials(true); // needed while using cookies or Authorization headers
-        config.addAllowedOriginPattern("*"); // allow all origins (for dev/test only)
-        config.addAllowedHeader("*");
-        config.addAllowedMethod("*");
-
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", config);
-        return new CorsFilter(source);
-    }
+//    @Bean
+//    public CorsFilter corsFilter() {
+//        CorsConfiguration config = new CorsConfiguration();
+//        config.setAllowCredentials(true); // needed while using cookies or Authorization headers
+//        config.addAllowedOriginPattern("*"); // allow all origins (for dev/test only)
+//        config.addAllowedHeader("*");
+//        config.addAllowedMethod("*");
+//
+//        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+//        source.registerCorsConfiguration("/**", config);
+//        return new CorsFilter(source);
+//    }
 }
