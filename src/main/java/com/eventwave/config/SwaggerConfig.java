@@ -1,19 +1,20 @@
 package com.eventwave.config;
 
-import io.swagger.v3.oas.models.OpenAPI;
-import io.swagger.v3.oas.models.info.Info;
-import org.springframework.context.annotation.Bean;
+import io.swagger.v3.oas.annotations.OpenAPIDefinition;
+import io.swagger.v3.oas.annotations.info.Info;
+import io.swagger.v3.oas.annotations.servers.Server;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-public class SwaggerConfig {
-
-    @Bean
-    public OpenAPI eventWaveOpenAPI() {
-        return new OpenAPI()
-            .info(new Info()
-                .title("EventWave API")
-                .description("API documentation for the EventWave platform")
-                .version("v1.0"));
+@OpenAPIDefinition(
+    info = @Info(
+        title = "EventWave API",
+        version = "v1.0",
+        description = "API documentation for the EventWave platform"
+    ),
+    servers = {
+        @Server(url = "https://backend-eventwave-production.up.railway.app")
     }
+)
+public class SwaggerConfig {
 }
