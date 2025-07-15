@@ -34,12 +34,23 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .cors(Customizer.withDefaults())
             .authorizeHttpRequests(auth -> auth
+                // ✅ Swagger & OpenAPI must be publicly accessible
+                .requestMatchers(
+                    "/v3/api-docs/**",
+                    "/swagger-ui/**",
+                    "/swagger-ui.html"
+                ).permitAll()
+
+                // ✅ Your existing public endpoints
                 .requestMatchers("/api/auth/register", "/api/auth/login").permitAll()
                 .requestMatchers("/api/otp/send", "/api/otp/verify").permitAll()
-                .requestMatchers("/api/auth/profile/update","/api/events/create").authenticated()
+
+                // ✅ Role/user-based endpoints
+                .requestMatchers("/api/auth/profile/update", "/api/events/create").authenticated()
                 .requestMatchers("/api/events", "/api/events/*", "/api/categories").permitAll()
                 .requestMatchers("/api/registrations/attendees/**").hasRole("ORGANIZER")
 
+                // ✅ Default: everything else needs auth
                 .anyRequest().authenticated()
             )
             .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -47,6 +58,7 @@ public class SecurityConfig {
 
         return http.build();
     }
+
     
     @Bean
     public CorsFilter corsFilter() {
